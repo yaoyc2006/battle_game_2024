@@ -1,6 +1,6 @@
 # Core
 
-这个文件夹下的内容是整个项目的核心框架。
+这个文件夹下的内容是整个项目的核心框架。对
 [GameCore](game_core.h) 类是所有游戏逻辑集中协调的地方。
 
 在这个框架中，游戏内容主要分为四类元素：单位（[Units](unit.h)）、障碍物（[Obstacles](obstacle.h)）、子弹（[Bullets](bullet.h)）和粒子（[Particles](particle.h)）。
