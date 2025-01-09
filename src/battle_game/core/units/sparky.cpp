@@ -31,8 +31,8 @@ Sparky::Sparky(GameCore *game_core, uint32_t id, uint32_t player_id)
               {{0.8f, -1.0f}, {0.0f, 0.0f}, {0.0f, 0.5f, 1.0f, 1.0f}},  // 右下角
 
               // 前部标识部分（红色，区分前后）
-              {{0.6f, 1.0f}, {0.0f, 0.0f}, {1.0f, 0.0f, 0.0f, 1.0f}},   // 前右角
-              {{-0.6f, 1.0f}, {0.0f, 0.0f}, {1.0f, 0.0f, 0.0f, 1.0f}},  // 前左角
+              {{0.6f, 1.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 0.0f, 1.0f}},   // 前右角
+              {{-0.6f, 1.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 0.0f, 1.0f}},  // 前左角
           },
           {0, 1, 2, 1, 2, 3, 0, 2, 5, 2, 4, 5});
     }
@@ -160,7 +160,7 @@ void Sparky::TurretRotate() {
     }
 
     // Smoothly interpolate turret rotation using easing function
-    float rotation_speed = 10.0f;  // Adjust this value for desired rotation speed
+    float rotation_speed = 5.0f;  // Adjust this value for desired rotation speed
     float t = rotation_speed * kSecondPerTick;
     t = t * t * (3.0f - 2.0f * t);  // Ease in and out
 
