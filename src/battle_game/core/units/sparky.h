@@ -21,5 +21,6 @@ class Sparky : public Unit {
   uint32_t mine_count_down_{0};
   glm::vec2 velocity_{0.0f, 0.0f};
   glm::vec2 acceleration_{0.0f, 0.0f};
+  float rotation_speed = 0.0f;
 };
 }  // namespace battle_game::unit

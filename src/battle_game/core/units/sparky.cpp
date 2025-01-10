@@ -141,7 +141,7 @@ void Sparky::TankMove(float move_speed, float rotate_angular_speed) {
       rotation_offset -= 1.0f;
     }
     // Apply a constant small angular acceleration
-    float angular_acceleration = 0.005f;  // Adjust this value for desired angular acceleration
+    float angular_acceleration = 0.004f;  // Adjust this value for desired angular acceleration
     rotation_offset *= angular_acceleration * rotate_angular_speed * GetSpeedScale();
     game_core_->PushEventRotateUnit(id_, rotation_ + rotation_offset);
   }
@@ -158,14 +158,21 @@ void Sparky::TurretRotate() {
     } else {
       target_rotation = std::atan2(diff.y, diff.x) - glm::radians(90.0f);
     }
-
-    // Smoothly interpolate turret rotation using easing function
-    float rotation_speed = 5.0f;  // Adjust this value for desired rotation speed
-    float t = rotation_speed * kSecondPerTick;
-    t = t * t * (3.0f - 2.0f * t);  // Ease in and out
-
+    
     // Ensure the shortest path is taken
     float delta_angle = glm::mod(target_rotation - turret_rotation_ + glm::pi<float>(), glm::two_pi<float>()) - glm::pi<float>();
+    
+    float start_angular_acceleration = 2.0f;  // Angular acceleration at the start
+    float end_angular_acceleration = 20.0f;  // Angular acceleration at the end
+
+    // Determine rotation speed based on distance to target angle
+    if (std::abs(delta_angle) < 0.01f) {
+      rotation_speed = std::max(rotation_speed-end_angular_acceleration * kSecondPerTick , 0.0f);
+    } else {
+      rotation_speed = std::min(rotation_speed+start_angular_acceleration * kSecondPerTick , 3.0f);
+    }
+    // Apply rotation
+    float t = rotation_speed * kSecondPerTick;
     turret_rotation_ += delta_angle * t;
   }
 }
@@ -177,9 +184,22 @@ void Sparky::Fire() {
       auto &input_data = player->GetInputData();
       if (input_data.mouse_button_down[GLFW_MOUSE_BUTTON_LEFT]) {
         auto bullet_velocity = Rotate(glm::vec2{0.0f, 50.0f}, turret_rotation_);
+        velocity_ -= Rotate(glm::vec2{0.0f, 50.0f}, turret_rotation_ - rotation_) * 0.008f;  // Recoil
+        glm::vec2 bullet_position = position_ + Rotate({0.0f, 1.2f}, turret_rotation_);
+        
+        // Calculate distance to target
+        glm::vec2 target_position = input_data.mouse_cursor_position;
+        float distance = glm::length(target_position - bullet_position);
+        
+        // Adjust damage based on distance
+        float base_damage = 8.0f;
+        float damage_scale = GetDamageScale();
+        float optimal_distance = 4.6f;  // Example optimal distance
+        float distance_factor = std::exp(-3 * std::pow((distance - optimal_distance) / (optimal_distance), 2));
+        float damage = base_damage * damage_scale * distance_factor;
         GenerateBullet<bullet::CannonBall>(
             position_ + Rotate({0.0f, 1.2f}, turret_rotation_),
-            turret_rotation_, 6 * GetDamageScale(), bullet_velocity);
+            turret_rotation_, damage, bullet_velocity * distance_factor);
         fire_count_down_ = 2 * kTickPerSecond;  // Fire interval 3 seconds.
       }
     }
