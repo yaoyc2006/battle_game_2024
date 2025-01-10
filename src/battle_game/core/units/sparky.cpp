@@ -214,7 +214,7 @@ void Sparky::Fire() {
 
 
         if (current_weapon_type_ == CANNON) {
-          velocity_ -= Rotate(glm::vec2{0.0f, 50.0f}, turret_rotation_ - rotation_) * 0.008f;  // Recoil
+          velocity_ -= Rotate(glm::vec2{0.0f, 0.4f}, turret_rotation_ - rotation_) * distance_factor;  // Recoil
           GenerateBullet<bullet::CannonBall>(
               bullet_position,
               turret_rotation_, damage, bullet_velocity * distance_factor);
