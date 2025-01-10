@@ -23,6 +23,7 @@ void GameCore::GeneratePrimaryUnitList() {
    * */
   ADD_SELECTABLE_UNIT(unit::Tank);
   ADD_SELECTABLE_UNIT(unit::Sparky);
+  ADD_SELECTABLE_UNIT(unit::RDK);
   unit.reset();
 }
 }  // namespace battle_game
