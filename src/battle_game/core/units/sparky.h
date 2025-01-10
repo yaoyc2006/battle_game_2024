@@ -22,5 +22,6 @@ class Sparky : public Unit {
   glm::vec2 velocity_{0.0f, 0.0f};
   glm::vec2 acceleration_{0.0f, 0.0f};
   float rotation_speed = 0.0f;
+  float heat_{0.0f};
 };
 }  // namespace battle_game::unit

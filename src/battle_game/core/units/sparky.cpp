@@ -13,6 +13,9 @@ namespace {
 uint32_t tank_body_model_index = 0xffffffffu;
 uint32_t tank_turret_model_index = 0xffffffffu;
 uint32_t tank_cannon_model_index = 0xffffffffu;
+const float kMaxHeat = 100.0f;  // Maximum heat before the barrel is disabled
+const float kHeatPerShot = 20.0f;  // Heat generated per shot
+const float kHeatDissipationRate = 2.0f;  // Heat dissipation rate per second
 }  // namespace
 
 Sparky::Sparky(GameCore *game_core, uint32_t id, uint32_t player_id)
@@ -105,6 +108,9 @@ void Sparky::Update() {
   // Apply friction to gradually reduce the velocity
   float friction = 0.995f;
   velocity_ *= friction;
+
+  // Dissipate heat over time
+  heat_ = std::max(0.0f, heat_ - kHeatDissipationRate * kSecondPerTick);
 }
 
 void Sparky::TankMove(float move_speed, float rotate_angular_speed) {
@@ -178,7 +184,7 @@ void Sparky::TurretRotate() {
 }
 
 void Sparky::Fire() {
-  if (fire_count_down_ == 0) {
+  if (fire_count_down_ == 0 && heat_ < kMaxHeat) {
     auto player = game_core_->GetPlayer(player_id_);
     if (player) {
       auto &input_data = player->GetInputData();
@@ -201,6 +207,9 @@ void Sparky::Fire() {
             position_ + Rotate({0.0f, 1.2f}, turret_rotation_),
             turret_rotation_, damage, bullet_velocity * distance_factor);
         fire_count_down_ = 2 * kTickPerSecond;  // Fire interval 3 seconds.
+
+        // Increase heat
+        heat_ += kHeatPerShot;
       }
     }
   }
