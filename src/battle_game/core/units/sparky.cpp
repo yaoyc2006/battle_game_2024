@@ -111,6 +111,15 @@ void Sparky::Update() {
 
   // Dissipate heat over time
   heat_ = std::max(0.0f, heat_ - kHeatDissipationRate * kSecondPerTick);
+
+  // Check for weapon type switch
+  auto player = game_core_->GetPlayer(player_id_);
+  if (player) {
+    auto &input_data = player->GetInputData();
+    if (input_data.key_down[GLFW_KEY_H]) {
+      current_weapon_type_ = current_weapon_type_ == CANNON ? MACHINE_GUN : CANNON;
+    }
+  }
 }
 
 void Sparky::TankMove(float move_speed, float rotate_angular_speed) {
@@ -190,7 +199,6 @@ void Sparky::Fire() {
       auto &input_data = player->GetInputData();
       if (input_data.mouse_button_down[GLFW_MOUSE_BUTTON_LEFT]) {
         auto bullet_velocity = Rotate(glm::vec2{0.0f, 50.0f}, turret_rotation_);
-        velocity_ -= Rotate(glm::vec2{0.0f, 50.0f}, turret_rotation_ - rotation_) * 0.008f;  // Recoil
         glm::vec2 bullet_position = position_ + Rotate({0.0f, 1.2f}, turret_rotation_);
         
         // Calculate distance to target
@@ -203,13 +211,22 @@ void Sparky::Fire() {
         float optimal_distance = 4.6f;  // Example optimal distance
         float distance_factor = std::exp(-3 * std::pow((distance - optimal_distance) / (optimal_distance), 2));
         float damage = base_damage * damage_scale * distance_factor;
-        GenerateBullet<bullet::CannonBall>(
-            position_ + Rotate({0.0f, 1.2f}, turret_rotation_),
-            turret_rotation_, damage, bullet_velocity * distance_factor);
-        fire_count_down_ = 2 * kTickPerSecond;  // Fire interval 3 seconds.
 
-        // Increase heat
-        heat_ += kHeatPerShot;
+
+        if (current_weapon_type_ == CANNON) {
+          velocity_ -= Rotate(glm::vec2{0.0f, 50.0f}, turret_rotation_ - rotation_) * 0.008f;  // Recoil
+          GenerateBullet<bullet::CannonBall>(
+              bullet_position,
+              turret_rotation_, damage, bullet_velocity * distance_factor);
+          fire_count_down_ = 2 * kTickPerSecond;  // Fire interval 2 seconds.
+          // Increase heat
+          heat_ += kHeatPerShot;
+        } else if (current_weapon_type_ == MACHINE_GUN) {
+          GenerateBullet<bullet::CannonBall>(
+              bullet_position,
+              turret_rotation_, GetDamageScale() * 0.05f, 0.5f * bullet_velocity);  // Less damage, faster bullets
+          fire_count_down_ = 0.1 * kTickPerSecond;  // Fire interval 0.1 seconds.
+        }
       }
     }
   }
